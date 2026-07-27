@@ -1,0 +1,30 @@
+* {
+    box-sizing: border-box;
+}
+
+/* The padding and border are part of the width */
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
+}
+
+.container {
+    width: 400px;
+    margin: 60px auto;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+}
+
+input, select, button {
+    width: 100%;
+    margin: 10px 0;
+    padding: 10px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+button {
+    cursor: pointer;
+}
