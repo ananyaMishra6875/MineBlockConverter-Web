@@ -32,9 +32,9 @@ async function convert() {
 
     // Output converted planks/logs
     document.getElementById("planks").textContent =
-        "Planks: " + result.planks;
+        result.planks; // labels moved to html
     document.getElementById("logs").textContent =
-        "Logs: " + result.logs;
+        result.logs;
 }
 
 // Connect the convert function to the button click event

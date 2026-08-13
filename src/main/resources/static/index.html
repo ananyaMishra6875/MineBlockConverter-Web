@@ -1,15 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
+
     <head>
         <meta charset="UTF-8">
         <title>MineBlockConverter</title>
         <link rel="stylesheet" href="styles.css">
     </head>
-    <body>
 
+    <body>
         <div class="container">
+
             <h1>MineBlockConverter</h1>
+            <h3>Convert Minecraft crafting recipes
+                into plank and log requirements.</h3>
             <label>Material</label>
+
+            <!-- Dropdown in the script.js -->
             <select id="materialSelect">
             </select>
 
@@ -25,19 +31,36 @@
                 Convert
             </button>
 
+            <!-- Line Break -->
             <hr>
 
+            <!-- Resources display -->
             <h2>Resources Needed</h2>
 
-            <p id="planks">
-                Planks:
-            </p>
+            <div class="results">
+                <div class="result-card">
 
-            <p id="logs">
-                Logs:
-            </p>
+                    <div>
+                        <h3>Planks</h3>
+                        <p>Total Required</p>
+                    </div>
+                    <span id="planks">0</span>
+
+                </div>
+
+                <div class="result-card">
+
+                    <div>
+                        <h3>Logs</h3>
+                        <p>Total Required</p>
+                    </div>
+                    <span id="logs">0</span>
+
+                </div>
+            </div>
 
         </div>
         <script src="script.js"></script>
     </body>
+
 </html>
