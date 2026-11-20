@@ -1,66 +1,99 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1d2520">
+    <title>MineBlock Converter</title>
+    <link rel="stylesheet" href="styles.css?v=20261119a">
+</head>
+<body>
+    <div class="app-shell">
+        <header class="topbar">
+            <a class="brand" href="#" aria-label="MineBlock Converter home">
+                <span class="brand-mark" aria-hidden="true"><span></span></span>
+                <span><strong>MineBlock</strong><small>Converter</small></span>
+            </a>
+            <span class="status"><span class="status-dot"></span>Recipe calculator</span>
+        </header>
 
-    <head>
-        <meta charset="UTF-8">
-        <title>MineBlockConverter</title>
-        <link rel="stylesheet" href="styles.css">
-    </head>
+        <main class="workspace">
+            <section class="intro">
+                <p class="eyebrow">Minecraft crafting planner</p>
+                <h1>What are you building?</h1>
+                <p>Choose a craft and quantity. We'll calculate the exact planks and logs you'll need.</p>
+            </section>
 
-    <body>
-        <div class="container">
-
-            <h1>MineBlockConverter</h1>
-            <h3>Convert Minecraft crafting recipes
-                into plank and log requirements.</h3>
-            <label>Material</label>
-
-            <!-- Dropdown in the script.js -->
-            <select id="materialSelect">
-            </select>
-
-            <label>Quantity</label>
-
-            <input
-            type="number"
-            id="quantityInput"
-            min="1"
-            value="1">
-
-            <button id="convertButton">
-                Convert
-            </button>
-
-            <!-- Line Break -->
-            <hr>
-
-            <!-- Resources display -->
-            <h2>Resources Needed</h2>
-
-            <div class="results">
-                <div class="result-card">
-
-                    <div>
-                        <h3>Planks</h3>
-                        <p>Total Required</p>
+            <div class="calculator-grid">
+                <section class="panel form-panel" aria-labelledby="calculator-heading">
+                    <div class="panel-heading">
+                        <div><p class="step">01</p><h2 id="calculator-heading">Craft details</h2></div>
+                        <button class="icon-button" id="resetButton" type="button" title="Reset calculator" aria-label="Reset calculator">↺</button>
                     </div>
-                    <span id="planks">0</span>
 
-                </div>
+                    <form id="converterForm" novalidate>
+                        <div class="field-group">
+                            <label for="materialSelect">Item to craft</label>
+                            <div class="select-wrap">
+                                <select id="materialSelect" aria-describedby="materialError">
+                                    <option value="">Choose an item</option>
+                                </select>
+                            </div>
+                            <p class="field-error" id="materialError" role="alert"></p>
+                        </div>
 
-                <div class="result-card">
+                        <div class="field-group">
+                            <label for="quantityInput">Quantity</label>
+                            <div class="quantity-control">
+                                <button type="button" id="decreaseButton" aria-label="Decrease quantity">−</button>
+                                <input type="number" id="quantityInput" min="1" max="1000000" value="1" inputmode="numeric" aria-describedby="quantityError">
+                                <button type="button" id="increaseButton" aria-label="Increase quantity">+</button>
+                            </div>
+                            <p class="field-error" id="quantityError" role="alert"></p>
+                        </div>
 
-                    <div>
-                        <h3>Logs</h3>
-                        <p>Total Required</p>
+                        <button class="convert-button" id="convertButton" type="submit">
+                            <span>Calculate resources</span><span class="button-arrow" aria-hidden="true">→</span>
+                        </button>
+                    </form>
+                </section>
+
+                <section class="panel results-panel" aria-labelledby="results-heading" aria-live="polite">
+                    <div class="panel-heading">
+                        <div><p class="step">02</p><h2 id="results-heading">Resources needed</h2></div>
+                        <span class="recipe-chip" id="recipeChip">Ready</span>
                     </div>
-                    <span id="logs">0</span>
 
-                </div>
+                    <div class="results-empty" id="emptyState">
+                        <div class="cube-graphic" aria-hidden="true"><span class="cube-top"></span><span class="cube-left"></span><span class="cube-right"></span></div>
+                        <h3>Your results will appear here</h3>
+                        <p>Select an item and enter a quantity to begin.</p>
+                    </div>
+
+                    <div class="results-content" id="resultsContent" hidden>
+                        <div class="summary-line"><span id="summaryMaterial">Stairs</span><strong id="summaryQuantity">× 1</strong></div>
+                        <div class="resource-list">
+                            <article class="resource-card planks-card">
+                                <div class="resource-icon plank-icon" aria-hidden="true"></div>
+                                <div><p>Planks</p><span>Total required</span></div>
+                                <strong id="planks">0</strong>
+                            </article>
+                            <article class="resource-card logs-card">
+                                <div class="resource-icon log-icon" aria-hidden="true"></div>
+                                <div><p>Logs</p><span>Total required</span></div>
+                                <strong id="logs">0</strong>
+                            </article>
+                        </div>
+                        <div class="recipe-details"><span>Crafting recipe</span><strong id="recipeDetails">—</strong></div>
+                    </div>
+
+                    <p class="error-banner" id="errorBanner" role="alert" hidden></p>
+                </section>
             </div>
+        </main>
 
-        </div>
-        <script src="script.js"></script>
-    </body>
-
+        <footer><span>MineBlock Tools</span><span>Java 21 · Spring Boot</span></footer>
+    </div>
+    <script src="script.js?v=20261119a"></script>
+</body>
 </html>
