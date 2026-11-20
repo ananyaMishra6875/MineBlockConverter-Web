@@ -5,12 +5,17 @@ public class ConversionResult {
     private int quantity;
     private int planks;
     private int logs;
+    private int planksPerRecipe;
+    private int itemsPerRecipe;
 
-    public ConversionResult(String material, int quantity, int planks, int logs) {
+    public ConversionResult(String material, int quantity, int planks, int logs,
+                            int planksPerRecipe, int itemsPerRecipe) {
         this.material = material;
         this.quantity = quantity;
         this.planks = planks;
         this.logs = logs;
+        this.planksPerRecipe = planksPerRecipe;
+        this.itemsPerRecipe = itemsPerRecipe;
     }
 
     // Getters
@@ -28,5 +33,13 @@ public class ConversionResult {
 
     public int getLogs() {
         return logs;
+    }
+
+    public int getPlanksPerRecipe() {
+        return planksPerRecipe;
+    }
+
+    public int getItemsPerRecipe() {
+        return itemsPerRecipe;
     }
 }
