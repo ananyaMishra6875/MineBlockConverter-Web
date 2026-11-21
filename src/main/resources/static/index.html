@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#1d2520">
     <title>MineBlock Converter</title>
-    <link rel="stylesheet" href="styles.css?v=20261121a">
+    <link rel="stylesheet" href="styles.css?v=20261121b">
 </head>
 <body>
     <div class="app-shell">
@@ -78,12 +78,12 @@
                         <div class="resource-list">
                             <article class="resource-card planks-card">
                                 <div class="resource-icon plank-icon" aria-hidden="true"></div>
-                                <div><p>Planks</p><span>Total required</span></div>
+                                <div><p>Planks</p><span id="planksStacks">Total required</span></div>
                                 <strong id="planks">0</strong>
                             </article>
                             <article class="resource-card logs-card">
                                 <div class="resource-icon log-icon" aria-hidden="true"></div>
-                                <div><p>Logs</p><span>Total required</span></div>
+                                <div><p>Logs</p><span id="logsStacks">Total required</span></div>
                                 <strong id="logs">0</strong>
                             </article>
                         </div>
@@ -121,8 +121,8 @@
 
                     <div class="list-totals" aria-live="polite">
                         <span>Combined total</span>
-                        <div class="total-pill"><span class="mini-icon plank-icon" aria-hidden="true"></span><strong id="totalPlanks">0</strong> planks</div>
-                        <div class="total-pill"><span class="mini-icon log-icon" aria-hidden="true"></span><strong id="totalLogs">0</strong> logs</div>
+                        <div class="total-pill"><span class="mini-icon plank-icon" aria-hidden="true"></span><span><strong id="totalPlanks">0</strong> planks<small class="stack-text" id="totalPlanksStacks"></small></span></div>
+                        <div class="total-pill"><span class="mini-icon log-icon" aria-hidden="true"></span><span><strong id="totalLogs">0</strong> logs<small class="stack-text" id="totalLogsStacks"></small></span></div>
                     </div>
                     <p class="list-note">Logs are worked out from the combined planks (1 log = 4 planks), so leftover planks from one item count toward the next.</p>
                     <p class="list-error" id="listError" role="alert" hidden></p>
@@ -132,6 +132,6 @@
 
         <footer><span>MineBlock Tools</span><span>Java 21 · Spring Boot</span></footer>
     </div>
-    <script src="script.js?v=20261121a"></script>
+    <script src="script.js?v=20261121b"></script>
 </body>
 </html>

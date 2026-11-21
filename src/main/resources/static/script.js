@@ -6,6 +6,18 @@ const emptyState = document.getElementById("emptyState");
 const resultsContent = document.getElementById("resultsContent");
 const errorBanner = document.getElementById("errorBanner");
 
+// Planks and logs both stack to 64 in Minecraft.
+const STACK_SIZE = 64;
+
+// 300 -> "4 stacks + 44", 128 -> "2 stacks", 40 -> "" (under a stack, nothing extra to show)
+function formatStacks(count) {
+    if (count == null || count < STACK_SIZE) return "";
+    const stacks = Math.floor(count / STACK_SIZE);
+    const leftover = count % STACK_SIZE;
+    const stackText = `${stacks.toLocaleString()} ${stacks === 1 ? "stack" : "stacks"}`;
+    return leftover ? `${stackText} + ${leftover}` : stackText;
+}
+
 async function loadMaterials() {
     try {
         const response = await fetch("/materials");
@@ -70,6 +82,8 @@ async function convert(event) {
 
         document.getElementById("planks").textContent = result.planks.toLocaleString();
         document.getElementById("logs").textContent = result.logs.toLocaleString();
+        document.getElementById("planksStacks").textContent = formatStacks(result.planks) || "Total required";
+        document.getElementById("logsStacks").textContent = formatStacks(result.logs) || "Total required";
         document.getElementById("summaryMaterial").textContent = result.material;
         document.getElementById("summaryQuantity").textContent = `× ${result.quantity.toLocaleString()}`;
         document.getElementById("recipeDetails").textContent =
@@ -187,6 +201,21 @@ function formatCount(value) {
     return value == null ? "…" : value.toLocaleString();
 }
 
+// Fills a list cell with the number, plus a small stack line underneath when it's 64 or more.
+function fillCountCell(cell, value) {
+    const stacks = formatStacks(value);
+    const number = document.createElement("span");
+    number.className = "count-value";
+    number.textContent = formatCount(value);
+    cell.replaceChildren(number);
+    if (stacks) {
+        const small = document.createElement("small");
+        small.className = "stack-text";
+        small.textContent = stacks;
+        cell.appendChild(small);
+    }
+}
+
 function renderList() {
     const count = shoppingList.length;
     document.getElementById("listCount").textContent = `${count} ${count === 1 ? "item" : "items"}`;
@@ -222,13 +251,13 @@ function renderList() {
         planks.className = "list-num";
         planks.setAttribute("role", "cell");
         planks.dataset.field = "planks";
-        planks.textContent = formatCount(entry.planks);
+        fillCountCell(planks, entry.planks);
 
         const logs = document.createElement("span");
         logs.className = "list-num";
         logs.setAttribute("role", "cell");
         logs.dataset.field = "logs";
-        logs.textContent = formatCount(entry.logs);
+        fillCountCell(logs, entry.logs);
 
         const removeCell = document.createElement("span");
         removeCell.setAttribute("role", "cell");
@@ -252,14 +281,20 @@ function renderListNumbers() {
     shoppingList.forEach(entry => {
         const row = listRows.querySelector(`[data-material="${CSS.escape(entry.material)}"]`);
         if (row) {
-            row.querySelector('[data-field="planks"]').textContent = formatCount(entry.planks);
-            row.querySelector('[data-field="logs"]').textContent = formatCount(entry.logs);
+            fillCountCell(row.querySelector('[data-field="planks"]'), entry.planks);
+            fillCountCell(row.querySelector('[data-field="logs"]'), entry.logs);
         }
         totalPlanks += entry.planks ?? 0;
     });
 
+    const totalLogs = Math.ceil(totalPlanks / 4);
     document.getElementById("totalPlanks").textContent = totalPlanks.toLocaleString();
-    document.getElementById("totalLogs").textContent = Math.ceil(totalPlanks / 4).toLocaleString();
+    document.getElementById("totalLogs").textContent = totalLogs.toLocaleString();
+    // Shown in brackets after the number, e.g. "300 planks (4 stacks + 44)"
+    const planksStacks = formatStacks(totalPlanks);
+    const logsStacks = formatStacks(totalLogs);
+    document.getElementById("totalPlanksStacks").textContent = planksStacks ? ` (${planksStacks})` : "";
+    document.getElementById("totalLogsStacks").textContent = logsStacks ? ` (${logsStacks})` : "";
 }
 
 function showListError(message) {
