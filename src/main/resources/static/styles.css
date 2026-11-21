@@ -118,6 +118,42 @@ select:focus, input:focus { outline: 3px solid rgba(128,157,96,.18); border-colo
 .recipe-details strong { color: var(--ink); }
 .error-banner { position: absolute; left: 32px; right: 32px; bottom: 20px; margin: 0; padding: 12px 14px; border: 1px solid #ddb9b1; border-radius: 5px; background: #fff3ef; color: var(--error); font-size: 13px; }
 
+/* Add-to-list button: secondary version of the convert button */
+.add-button { width: 100%; height: 50px; margin-top: 14px; padding: 0 8px 0 18px; display: flex; align-items: center; justify-content: space-between; border: 1px solid #b9c0a8; border-radius: 6px; background: #fff; color: var(--forest); font-weight: 800; box-shadow: 0 4px 0 #d6d8c9; transition: .16s ease; }
+.add-button:hover { background: #f3f6ea; border-color: #9fae86; transform: translateY(-1px); }
+.add-button:active { transform: translateY(3px); box-shadow: 0 1px 0 #d6d8c9; }
+.button-plus { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 4px; background: #eef2e3; font-size: 20px; }
+
+/* Shopping list panel */
+.list-panel { min-height: 0; margin-top: 18px; padding: 28px 32px; }
+.list-actions { display: flex; align-items: center; gap: 10px; }
+.text-button { border: 0; background: transparent; color: var(--muted); font-size: 13px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.text-button:hover { color: var(--error); }
+.list-empty { padding: 30px 4px 8px; color: var(--muted); font-size: 14px; line-height: 1.6; }
+.list-empty p { margin: 0; }
+.list-empty strong { color: var(--ink); }
+.list-content { padding-top: 8px; animation: reveal .28s ease-out; }
+
+.list-row { display: grid; grid-template-columns: minmax(120px, 1.4fr) 140px 1fr 1fr 44px; align-items: center; gap: 12px; padding: 10px 4px; border-bottom: 1px solid var(--line); }
+.list-head { padding: 12px 4px 8px; color: var(--muted); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; }
+.list-item-name { font-weight: 750; }
+.list-num { font-family: "Minecraft", sans-serif; font-size: 17px; color: var(--forest); }
+.list-qty { width: 100%; height: 40px; padding: 0 10px; border: 1px solid #cfd1c4; border-radius: 6px; background: #fff; font-weight: 750; }
+.list-qty.invalid { border-color: var(--error); outline: 3px solid rgba(164,74,63,.14); }
+.remove-button { width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 50%; background: transparent; color: var(--muted); font-size: 18px; line-height: 1; transition: .16s ease; }
+.remove-button:hover { color: var(--error); border-color: #ddb9b1; background: #fff3ef; }
+
+.list-totals { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 18px; padding: 16px 18px; border: 1px solid var(--line); background: #fff; }
+.list-totals > span { margin-right: auto; font-weight: 800; }
+.total-pill { display: flex; align-items: center; gap: 10px; padding: 6px 14px 6px 6px; border: 1px solid var(--line); background: #f6f5ef; color: var(--muted); font-size: 13px; }
+.total-pill strong { font-family: "Minecraft", sans-serif; font-size: 20px; color: var(--forest); }
+.mini-icon { width: 30px; height: 30px; border: 1px solid #bfc3ae; }
+.mini-icon.plank-icon { background: repeating-linear-gradient(0deg, #b78e56 0 6px, #9d7546 6px 7px); }
+.mini-icon.log-icon { background: radial-gradient(circle at 50% 50%, #a27a4d 0 4px, #5f442b 5px 6px, #94714a 7px 100%); }
+.list-note { margin: 10px 2px 0; color: var(--muted); font-size: 12px; }
+.list-error { margin: 12px 0 0; padding: 12px 14px; border: 1px solid #ddb9b1; border-radius: 5px; background: #fff3ef; color: var(--error); font-size: 13px; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
 footer { width: min(1120px, calc(100% - 48px)); margin-top: auto; padding: 18px 0; display: flex; justify-content: space-between; border-top: 1px solid var(--line); color: #8b9083; font-size: 11px; text-transform: uppercase; letter-spacing: 1.4px; }
 
 @media (max-width: 850px) {
@@ -136,5 +172,12 @@ footer { width: min(1120px, calc(100% - 48px)); margin-top: auto; padding: 18px 
     .resource-icon { width: 54px; height: 54px; }
     .resource-card strong { font-size: 26px; }
     .error-banner { left: 20px; right: 20px; }
+    .list-panel { padding: 20px; }
+    .list-row { grid-template-columns: 1fr 88px 36px; gap: 8px 10px; }
+    .list-head { display: none; }
+    .list-num { grid-row: 2; font-size: 14px; }
+    .list-num[data-field="planks"]::after { content: " planks"; font-family: "Segoe UI", Arial, sans-serif; font-size: 12px; color: var(--muted); }
+    .list-num[data-field="logs"]::after { content: " logs"; font-family: "Segoe UI", Arial, sans-serif; font-size: 12px; color: var(--muted); }
+    .list-totals > span { width: 100%; }
     footer { width: calc(100% - 24px); }
 }

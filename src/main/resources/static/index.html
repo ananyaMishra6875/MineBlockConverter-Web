@@ -1,11 +1,11 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#1d2520">
     <title>MineBlock Converter</title>
-    <link rel="stylesheet" href="styles.css?v=20261119a">
+    <link rel="stylesheet" href="styles.css?v=20261121a">
 </head>
 <body>
     <div class="app-shell">
@@ -55,6 +55,9 @@
                         <button class="convert-button" id="convertButton" type="submit">
                             <span>Calculate resources</span><span class="button-arrow" aria-hidden="true">→</span>
                         </button>
+                        <button class="add-button" id="addToListButton" type="button">
+                            <span>Add to shopping list</span><span class="button-plus" aria-hidden="true">+</span>
+                        </button>
                     </form>
                 </section>
 
@@ -90,10 +93,45 @@
                     <p class="error-banner" id="errorBanner" role="alert" hidden></p>
                 </section>
             </div>
+
+            <section class="panel list-panel" aria-labelledby="list-heading">
+                <div class="panel-heading">
+                    <div><p class="step">03</p><h2 id="list-heading">Shopping list</h2></div>
+                    <div class="list-actions">
+                        <span class="recipe-chip" id="listCount">0 items</span>
+                        <button class="text-button" id="clearListButton" type="button" hidden>Clear list</button>
+                    </div>
+                </div>
+
+                <div class="list-empty" id="listEmpty">
+                    <p>Your list is empty. Pick an item above and press <strong>Add to shopping list</strong> to plan a whole build at once.</p>
+                </div>
+
+                <div class="list-content" id="listContent" hidden>
+                    <div class="list-table" role="table" aria-label="Shopping list items">
+                        <div class="list-row list-head" role="row">
+                            <span role="columnheader">Item</span>
+                            <span role="columnheader">Quantity</span>
+                            <span role="columnheader">Planks</span>
+                            <span role="columnheader">Logs</span>
+                            <span role="columnheader"><span class="visually-hidden">Remove</span></span>
+                        </div>
+                        <div id="listRows" role="rowgroup"></div>
+                    </div>
+
+                    <div class="list-totals" aria-live="polite">
+                        <span>Combined total</span>
+                        <div class="total-pill"><span class="mini-icon plank-icon" aria-hidden="true"></span><strong id="totalPlanks">0</strong> planks</div>
+                        <div class="total-pill"><span class="mini-icon log-icon" aria-hidden="true"></span><strong id="totalLogs">0</strong> logs</div>
+                    </div>
+                    <p class="list-note">Logs are worked out from the combined planks (1 log = 4 planks), so leftover planks from one item count toward the next.</p>
+                    <p class="list-error" id="listError" role="alert" hidden></p>
+                </div>
+            </section>
         </main>
 
         <footer><span>MineBlock Tools</span><span>Java 21 · Spring Boot</span></footer>
     </div>
-    <script src="script.js?v=20261119a"></script>
+    <script src="script.js?v=20261121a"></script>
 </body>
 </html>
