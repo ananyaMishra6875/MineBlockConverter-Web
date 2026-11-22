@@ -135,11 +135,15 @@ const listContent = document.getElementById("listContent");
 const listRows = document.getElementById("listRows");
 const listError = document.getElementById("listError");
 const clearListButton = document.getElementById("clearListButton");
+const copyListButton = document.getElementById("copyListButton");
 
 // Each entry: { material, quantity, planks, logs } (planks/logs filled in by the server)
 let shoppingList = [];
 let recalcTimer = null;
 let recalcRequestId = 0;
+// False from any list change until the server answers for the latest version of the list.
+let listUpToDate = true;
+let copyResetTimer = null;
 
 // The list is kept in the browser so it survives a refresh.
 // Only material + quantity are stored; planks/logs are recalculated by the server on load.
@@ -234,6 +238,8 @@ function updateListQuantity(material, rawValue, input) {
 
     input.classList.remove("invalid");
     entry.quantity = quantity;
+    listUpToDate = false;
+    recalcRequestId++; // any request already in flight is now out of date
     saveList();
     // Wait for the user to stop typing before asking the server.
     clearTimeout(recalcTimer);
@@ -265,6 +271,7 @@ function renderList() {
     listEmpty.hidden = count > 0;
     listContent.hidden = count === 0;
     clearListButton.hidden = count === 0;
+    copyListButton.hidden = count === 0;
 
     listRows.replaceChildren(...shoppingList.map(entry => {
         const row = document.createElement("div");
@@ -348,8 +355,10 @@ function showListError(message) {
 async function recalculateList() {
     clearTimeout(recalcTimer);
     listError.hidden = true;
+    listUpToDate = false;
 
     if (shoppingList.length === 0) {
+        listUpToDate = true;
         renderListNumbers();
         return;
     }
@@ -375,13 +384,52 @@ async function recalculateList() {
                 entry.logs = result.logs;
             }
         });
+        listUpToDate = true;
         renderListNumbers();
     } catch (error) {
         if (requestId === recalcRequestId) showListError(error.message);
     }
 }
 
+function hasInvalidQuantity() {
+    return listRows.querySelector(".list-qty.invalid") !== null;
+}
+
+// Plain text for pasting into chat or notes, e.g. "Stairs ×24 → 36 planks (9 logs)"
+function listAsText() {
+    const lines = shoppingList.map(entry =>
+        `${entry.material} ×${entry.quantity.toLocaleString()} → ` +
+        `${entry.planks.toLocaleString()} planks (${entry.logs.toLocaleString()} logs)`);
+    const totalPlanks = shoppingList.reduce((sum, entry) => sum + entry.planks, 0);
+    const totalLogs = Math.ceil(totalPlanks / 4);
+    lines.push(`Total: ${totalPlanks.toLocaleString()} planks, ${totalLogs.toLocaleString()} logs`);
+    return lines.join("\n");
+}
+
+async function copyList() {
+    listError.hidden = true;
+
+    if (hasInvalidQuantity()) {
+        showListError("Fix the highlighted quantity before copying.");
+        return;
+    }
+    if (!listUpToDate) {
+        showListError("Your list is still calculating. Try again in a moment.");
+        return;
+    }
+
+    try {
+        await navigator.clipboard.writeText(listAsText());
+        copyListButton.textContent = "Copied!";
+        clearTimeout(copyResetTimer);
+        copyResetTimer = setTimeout(() => { copyListButton.textContent = "Copy list"; }, 1500);
+    } catch {
+        showListError("Couldn't copy to the clipboard. Your browser may be blocking it.");
+    }
+}
+
 document.getElementById("addToListButton").addEventListener("click", addToList);
+copyListButton.addEventListener("click", copyList);
 clearListButton.addEventListener("click", () => {
     shoppingList = [];
     saveList();

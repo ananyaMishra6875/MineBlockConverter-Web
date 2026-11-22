@@ -129,6 +129,7 @@ select:focus, input:focus { outline: 3px solid rgba(128,157,96,.18); border-colo
 .list-actions { display: flex; align-items: center; gap: 10px; }
 .text-button { border: 0; background: transparent; color: var(--muted); font-size: 13px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 .text-button:hover { color: var(--error); }
+.copy-button:hover { color: var(--forest); }
 .list-empty { padding: 30px 4px 8px; color: var(--muted); font-size: 14px; line-height: 1.6; }
 .list-empty p { margin: 0; }
 .list-empty strong { color: var(--ink); }
