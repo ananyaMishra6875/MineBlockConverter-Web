@@ -428,6 +428,32 @@ async function copyList() {
     }
 }
 
+/* ---------- Theme ---------- */
+
+// The starting theme is set by the small script in index.html's <head>; this keeps it in sync after that.
+const THEME_STORAGE_KEY = "mineblock.theme";
+const themeToggle = document.getElementById("themeToggle");
+
+function applyTheme(theme) {
+    const dark = theme === "dark";
+    document.documentElement.dataset.theme = dark ? "dark" : "light";
+    themeToggle.setAttribute("aria-pressed", String(dark));
+    // Show what clicking will switch to; ︎ keeps the sun as a plain symbol, not a colour emoji.
+    themeToggle.textContent = dark ? "☀︎" : "☾";
+}
+
+themeToggle.addEventListener("click", () => {
+    const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+    applyTheme(next);
+    try {
+        localStorage.setItem(THEME_STORAGE_KEY, next);
+    } catch {
+        // Can't save; the theme still changes for this visit.
+    }
+});
+
+applyTheme(document.documentElement.dataset.theme);
+
 document.getElementById("addToListButton").addEventListener("click", addToList);
 copyListButton.addEventListener("click", copyList);
 clearListButton.addEventListener("click", () => {

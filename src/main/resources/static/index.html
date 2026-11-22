@@ -5,7 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#1d2520">
     <title>MineBlock Converter</title>
-    <link rel="stylesheet" href="styles.css?v=20261122b">
+    <link rel="stylesheet" href="styles.css?v=20261122d">
+    <script>
+        // Pick the theme before the page draws, so there's no flash of the wrong colours.
+        // Light unless the user picked dark before. script.js handles the toggle.
+        (function () {
+            var saved = null;
+            try { saved = localStorage.getItem("mineblock.theme"); } catch (e) {}
+            document.documentElement.dataset.theme = saved === "dark" ? "dark" : "light";
+        })();
+    </script>
 </head>
 <body>
     <div class="app-shell">
@@ -14,7 +23,11 @@
                 <span class="brand-mark" aria-hidden="true"><span></span></span>
                 <span><strong>MineBlock</strong><small>Converter</small></span>
             </a>
-            <span class="status"><span class="status-dot"></span>Recipe calculator</span>
+            <div class="topbar-actions">
+                <span class="status"><span class="status-dot"></span>Recipe calculator</span>
+                <button class="icon-button theme-toggle" id="themeToggle" type="button"
+                        aria-label="Dark mode" aria-pressed="false" title="Dark mode">☾</button>
+            </div>
         </header>
 
         <main class="workspace">
@@ -133,6 +146,6 @@
 
         <footer><span>MineBlock Tools</span><span>Java 21 · Spring Boot · Maven</span></footer>
     </div>
-    <script src="script.js?v=20261122c"></script>
+    <script src="script.js?v=20261122e"></script>
 </body>
 </html>
