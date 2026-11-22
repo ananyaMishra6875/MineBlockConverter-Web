@@ -18,6 +18,7 @@ function formatStacks(count) {
     return leftover ? `${stackText} + ${leftover}` : stackText;
 }
 
+// Returns the material names, or null if they couldn't be loaded.
 async function loadMaterials() {
     try {
         const response = await fetch("/materials");
@@ -30,8 +31,10 @@ async function loadMaterials() {
             option.textContent = material;
             materialSelect.appendChild(option);
         });
+        return materials;
     } catch (error) {
         showError(error.message);
+        return null;
     }
 }
 
@@ -138,6 +141,43 @@ let shoppingList = [];
 let recalcTimer = null;
 let recalcRequestId = 0;
 
+// The list is kept in the browser so it survives a refresh.
+// Only material + quantity are stored; planks/logs are recalculated by the server on load.
+const LIST_STORAGE_KEY = "mineblock.shoppingList";
+
+function saveList() {
+    try {
+        const saved = shoppingList.map(({material, quantity}) => ({material, quantity}));
+        localStorage.setItem(LIST_STORAGE_KEY, JSON.stringify(saved));
+    } catch {
+        // Storage can be unavailable (e.g. blocked or full); the list still works for this visit.
+    }
+}
+
+// Reads the saved list, skipping anything malformed or no longer a known material.
+// knownMaterials is null if the material list failed to load; then nothing is filtered by name.
+function loadSavedList(knownMaterials) {
+    let saved;
+    try {
+        saved = JSON.parse(localStorage.getItem(LIST_STORAGE_KEY));
+    } catch {
+        return [];
+    }
+    if (!Array.isArray(saved)) return [];
+
+    const entries = [];
+    saved.forEach(item => {
+        const material = item?.material;
+        const quantity = item?.quantity;
+        if (typeof material !== "string") return;
+        if (knownMaterials && !knownMaterials.includes(material)) return;
+        if (!Number.isInteger(quantity) || quantity < 1 || quantity > MAX_QUANTITY) return;
+        if (entries.some(entry => entry.material === material)) return;
+        entries.push({material, quantity, planks: null, logs: null});
+    });
+    return entries;
+}
+
 function addToList() {
     clearValidation();
 
@@ -169,12 +209,14 @@ function addToList() {
         shoppingList.push({material, quantity, planks: null, logs: null});
     }
 
+    saveList();
     renderList();
     recalculateList();
 }
 
 function removeFromList(material) {
     shoppingList = shoppingList.filter(entry => entry.material !== material);
+    saveList();
     renderList();
     recalculateList();
 }
@@ -192,6 +234,7 @@ function updateListQuantity(material, rawValue, input) {
 
     input.classList.remove("invalid");
     entry.quantity = quantity;
+    saveList();
     // Wait for the user to stop typing before asking the server.
     clearTimeout(recalcTimer);
     recalcTimer = setTimeout(recalculateList, 250);
@@ -341,9 +384,16 @@ async function recalculateList() {
 document.getElementById("addToListButton").addEventListener("click", addToList);
 clearListButton.addEventListener("click", () => {
     shoppingList = [];
+    saveList();
     renderList();
     recalculateList();
 });
 
 renderList();
-loadMaterials();
+loadMaterials().then(materials => {
+    shoppingList = loadSavedList(materials);
+    // Re-save so entries that were dropped (e.g. a removed material) don't come back.
+    if (materials) saveList();
+    renderList();
+    recalculateList();
+});
