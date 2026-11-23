@@ -27,8 +27,8 @@ public class ConverterService {
             throw new IllegalArgumentException("Unknown material: " + materialName);
         }
 
-        int planks = material.calculatePlanks(quantity);
-        int logs = material.calculateLogs(quantity);
+        int planks = material.calculateIngredients(quantity);
+        int logs = material.calculateRawMaterials(quantity);
 
         return new ConversionResult(material.getName(), quantity, planks, logs,
                 material.getRecipeInput(), material.getRecipeOutput());
