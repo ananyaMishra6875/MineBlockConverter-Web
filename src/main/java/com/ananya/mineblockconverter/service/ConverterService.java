@@ -31,7 +31,8 @@ public class ConverterService {
         int logs = material.calculateRawMaterials(quantity);
 
         return new ConversionResult(material.getName(), quantity, planks, logs,
-                material.getRecipeInput(), material.getRecipeOutput());
+                material.getRecipeInput(), material.getRecipeOutput(),
+                material.getIngredient(), material.getRawMaterial(), material.getIngredientsPerRaw());
     }
 
     public List<String> getMaterialNames() {

@@ -20,6 +20,9 @@ class ConverterServiceTests {
         assertEquals(3, result.getLogs());
         assertEquals(6, result.getPlanksPerRecipe());
         assertEquals(4, result.getItemsPerRecipe());
+        assertEquals("Planks", result.getIngredient());
+        assertEquals("Logs", result.getRawMaterial());
+        assertEquals(4, result.getIngredientsPerRaw());
     }
 
     @Test

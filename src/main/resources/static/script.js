@@ -87,10 +87,13 @@ async function convert(event) {
         document.getElementById("logs").textContent = result.logs.toLocaleString();
         document.getElementById("planksStacks").textContent = formatStacks(result.planks) || "Total required";
         document.getElementById("logsStacks").textContent = formatStacks(result.logs) || "Total required";
+        document.getElementById("ingredientLabel").textContent = result.ingredient;
+        document.getElementById("rawMaterialLabel").textContent = result.rawMaterial;
         document.getElementById("summaryMaterial").textContent = result.material;
         document.getElementById("summaryQuantity").textContent = `× ${result.quantity.toLocaleString()}`;
         document.getElementById("recipeDetails").textContent =
-            `${result.planksPerRecipe} planks → ${result.itemsPerRecipe} ${result.material.toLowerCase()}`;
+            `${result.planksPerRecipe} ${result.ingredient.toLowerCase()} → ` +
+            `${result.itemsPerRecipe} ${result.material.toLowerCase()}`;
         document.getElementById("recipeChip").textContent = "Calculated";
 
         emptyState.hidden = true;
