@@ -19,7 +19,19 @@ public class RecipeRepository {
         addWood(recipes, "Boats", 5, 1);
         addWood(recipes, "Chests", 8, 1);
 
+        // Stone family: made from stone, and 1 cobblestone smelts into 1 stone
+        addStone(recipes, "Stone Stairs", 6, 4);
+        addStone(recipes, "Stone Slabs", 3, 6);
+        addStone(recipes, "Stone Bricks", 4, 4);
+        addStone(recipes, "Stone Buttons", 1, 1);
+        addStone(recipes, "Stone Pressure Plates", 2, 1);
+
         return recipes;
+    }
+
+    private static void addStone(LinkedHashMap<String, Material> recipes,
+                                 String name, int stoneIn, int itemsOut) {
+        recipes.put(name, new Material(name, "Stone", stoneIn, itemsOut, "Cobblestone", 1));
     }
 
     private static void addWood(LinkedHashMap<String, Material> recipes,

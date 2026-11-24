@@ -6,8 +6,20 @@ const emptyState = document.getElementById("emptyState");
 const resultsContent = document.getElementById("resultsContent");
 const errorBanner = document.getElementById("errorBanner");
 
-// Planks and logs both stack to 64 in Minecraft.
+// Planks, logs, stone and cobblestone all stack to 64 in Minecraft.
 const STACK_SIZE = 64;
+
+// CSS class for a material's little block icon (see styles.css).
+const ICON_CLASSES = {
+    Planks: "plank-icon",
+    Logs: "log-icon",
+    Stone: "stone-icon",
+    Cobblestone: "cobblestone-icon"
+};
+
+function iconClass(materialName) {
+    return ICON_CLASSES[materialName] ?? "plank-icon";
+}
 
 // 300 -> "4 stacks + 44", 128 -> "2 stacks", 40 -> "" (under a stack, nothing extra to show)
 function formatStacks(count) {
@@ -89,6 +101,8 @@ async function convert(event) {
         document.getElementById("logsStacks").textContent = formatStacks(result.logs) || "Total required";
         document.getElementById("ingredientLabel").textContent = result.ingredient;
         document.getElementById("rawMaterialLabel").textContent = result.rawMaterial;
+        document.getElementById("ingredientIcon").className = `resource-icon ${iconClass(result.ingredient)}`;
+        document.getElementById("rawMaterialIcon").className = `resource-icon ${iconClass(result.rawMaterial)}`;
         document.getElementById("summaryMaterial").textContent = result.material;
         document.getElementById("summaryQuantity").textContent = `× ${result.quantity.toLocaleString()}`;
         document.getElementById("recipeDetails").textContent =
@@ -140,8 +154,15 @@ const listError = document.getElementById("listError");
 const clearListButton = document.getElementById("clearListButton");
 const copyListButton = document.getElementById("copyListButton");
 
-// Each entry: { material, quantity, planks, logs } (planks/logs filled in by the server)
+// Each entry: { material, quantity, planks, logs, ingredient, rawMaterial, ingredientsPerRaw }.
+// Everything after quantity is filled in by the server. For stone items "planks"/"logs"
+// hold the stone/cobblestone counts; ingredient/rawMaterial say what they really are.
 let shoppingList = [];
+
+function newEntry(material, quantity) {
+    return {material, quantity, planks: null, logs: null,
+        ingredient: null, rawMaterial: null, ingredientsPerRaw: null};
+}
 let recalcTimer = null;
 let recalcRequestId = 0;
 // False from any list change until the server answers for the latest version of the list.
@@ -180,7 +201,7 @@ function loadSavedList(knownMaterials) {
         if (knownMaterials && !knownMaterials.includes(material)) return;
         if (!Number.isInteger(quantity) || quantity < 1 || quantity > MAX_QUANTITY) return;
         if (entries.some(entry => entry.material === material)) return;
-        entries.push({material, quantity, planks: null, logs: null});
+        entries.push(newEntry(material, quantity));
     });
     return entries;
 }
@@ -213,7 +234,7 @@ function addToList() {
         }
         existing.quantity += quantity;
     } else {
-        shoppingList.push({material, quantity, planks: null, logs: null});
+        shoppingList.push(newEntry(material, quantity));
     }
 
     saveList();
@@ -253,12 +274,13 @@ function formatCount(value) {
     return value == null ? "…" : value.toLocaleString();
 }
 
-// Fills a list cell with the number, plus a small stack line underneath when it's 64 or more.
-function fillCountCell(cell, value) {
+// Fills a list cell with the number and what it counts (e.g. "12 stone"),
+// plus a small stack line underneath when it's 64 or more.
+function fillCountCell(cell, value, unit) {
     const stacks = formatStacks(value);
     const number = document.createElement("span");
     number.className = "count-value";
-    number.textContent = formatCount(value);
+    number.textContent = value == null || !unit ? "…" : `${formatCount(value)} ${unit.toLowerCase()}`;
     cell.replaceChildren(number);
     if (stacks) {
         const small = document.createElement("small");
@@ -304,13 +326,13 @@ function renderList() {
         planks.className = "list-num";
         planks.setAttribute("role", "cell");
         planks.dataset.field = "planks";
-        fillCountCell(planks, entry.planks);
+        fillCountCell(planks, entry.planks, entry.ingredient);
 
         const logs = document.createElement("span");
         logs.className = "list-num";
         logs.setAttribute("role", "cell");
         logs.dataset.field = "logs";
-        fillCountCell(logs, entry.logs);
+        fillCountCell(logs, entry.logs, entry.rawMaterial);
 
         const removeCell = document.createElement("span");
         removeCell.setAttribute("role", "cell");
@@ -330,24 +352,65 @@ function renderList() {
 
 // Updates only the numbers, so the quantity box being typed in keeps focus.
 function renderListNumbers() {
-    let totalPlanks = 0;
     shoppingList.forEach(entry => {
         const row = listRows.querySelector(`[data-material="${CSS.escape(entry.material)}"]`);
         if (row) {
-            fillCountCell(row.querySelector('[data-field="planks"]'), entry.planks);
-            fillCountCell(row.querySelector('[data-field="logs"]'), entry.logs);
+            fillCountCell(row.querySelector('[data-field="planks"]'), entry.planks, entry.ingredient);
+            fillCountCell(row.querySelector('[data-field="logs"]'), entry.logs, entry.rawMaterial);
         }
-        totalPlanks += entry.planks ?? 0;
     });
 
-    const totalLogs = Math.ceil(totalPlanks / 4);
-    document.getElementById("totalPlanks").textContent = totalPlanks.toLocaleString();
-    document.getElementById("totalLogs").textContent = totalLogs.toLocaleString();
-    // Shown in brackets after the number, e.g. "300 planks (4 stacks + 44)"
-    const planksStacks = formatStacks(totalPlanks);
-    const logsStacks = formatStacks(totalLogs);
-    document.getElementById("totalPlanksStacks").textContent = planksStacks ? ` (${planksStacks})` : "";
-    document.getElementById("totalLogsStacks").textContent = logsStacks ? ` (${logsStacks})` : "";
+    const pills = [];
+    listTotals().forEach(group => {
+        pills.push(totalPill(group.ingredient, group.ingredientTotal));
+        pills.push(totalPill(group.rawMaterial, group.rawTotal));
+    });
+    document.getElementById("totalPills").replaceChildren(...pills);
+}
+
+// Adds up the list per ingredient, in list order, e.g.
+// [{ingredient: "Planks", ingredientTotal: 36, rawMaterial: "Logs", rawTotal: 9}, ...].
+// Raw materials come from the combined ingredient total, so leftovers carry over between items.
+// Items the server hasn't answered for yet are left out.
+function listTotals() {
+    const groups = new Map();
+    shoppingList.forEach(entry => {
+        if (entry.ingredient == null || entry.planks == null) return;
+        let group = groups.get(entry.ingredient);
+        if (!group) {
+            group = {ingredient: entry.ingredient, ingredientTotal: 0,
+                rawMaterial: entry.rawMaterial, perRaw: entry.ingredientsPerRaw};
+            groups.set(entry.ingredient, group);
+        }
+        group.ingredientTotal += entry.planks;
+    });
+    return [...groups.values()].map(group =>
+        ({...group, rawTotal: Math.ceil(group.ingredientTotal / group.perRaw)}));
+}
+
+// One total, e.g. [icon] "300 planks (4 stacks + 44)"
+function totalPill(materialName, count) {
+    const pill = document.createElement("div");
+    pill.className = "total-pill";
+
+    const icon = document.createElement("span");
+    icon.className = `mini-icon ${iconClass(materialName)}`;
+    icon.setAttribute("aria-hidden", "true");
+
+    const text = document.createElement("span");
+    const number = document.createElement("strong");
+    number.textContent = count.toLocaleString();
+    text.append(number, ` ${materialName.toLowerCase()}`);
+    const stacks = formatStacks(count);
+    if (stacks) {
+        const small = document.createElement("small");
+        small.className = "stack-text";
+        small.textContent = ` (${stacks})`;
+        text.appendChild(small);
+    }
+
+    pill.append(icon, text);
+    return pill;
 }
 
 function showListError(message) {
@@ -385,6 +448,9 @@ async function recalculateList() {
             if (entry) {
                 entry.planks = result.planks;
                 entry.logs = result.logs;
+                entry.ingredient = result.ingredient;
+                entry.rawMaterial = result.rawMaterial;
+                entry.ingredientsPerRaw = result.ingredientsPerRaw;
             }
         });
         listUpToDate = true;
@@ -398,14 +464,17 @@ function hasInvalidQuantity() {
     return listRows.querySelector(".list-qty.invalid") !== null;
 }
 
-// Plain text for pasting into chat or notes, e.g. "Stairs ×24 → 36 planks (9 logs)"
+// Plain text for pasting into chat or notes, e.g. "Stairs ×24 → 36 planks (9 logs)",
+// then one "Total:" line per ingredient.
 function listAsText() {
     const lines = shoppingList.map(entry =>
         `${entry.material} ×${entry.quantity.toLocaleString()} → ` +
-        `${entry.planks.toLocaleString()} planks (${entry.logs.toLocaleString()} logs)`);
-    const totalPlanks = shoppingList.reduce((sum, entry) => sum + entry.planks, 0);
-    const totalLogs = Math.ceil(totalPlanks / 4);
-    lines.push(`Total: ${totalPlanks.toLocaleString()} planks, ${totalLogs.toLocaleString()} logs`);
+        `${entry.planks.toLocaleString()} ${entry.ingredient.toLowerCase()} ` +
+        `(${entry.logs.toLocaleString()} ${entry.rawMaterial.toLowerCase()})`);
+    listTotals().forEach(group => {
+        lines.push(`Total: ${group.ingredientTotal.toLocaleString()} ${group.ingredient.toLowerCase()}, ` +
+            `${group.rawTotal.toLocaleString()} ${group.rawMaterial.toLowerCase()}`);
+    });
     return lines.join("\n");
 }
 

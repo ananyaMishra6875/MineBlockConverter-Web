@@ -26,6 +26,16 @@ class ConverterServiceTests {
     }
 
     @Test
+    void calculatesStoneStairsAndCobblestone() {
+        ConversionResult result = service.convert("Stone Stairs", 8);
+
+        assertEquals("Stone", result.getIngredient());
+        assertEquals("Cobblestone", result.getRawMaterial());
+        assertEquals(12, result.getPlanks());  // 12 stone
+        assertEquals(12, result.getLogs());    // 12 cobblestone, smelted 1:1
+    }
+
+    @Test
     void woodRecipesSayWhatTheyAreMadeFrom() {
         Material stairs = RecipeRepository.loadRecipes().get("Stairs");
 
