@@ -26,6 +26,9 @@ public class RecipeRepository {
         addStone(recipes, "Stone Buttons", 1, 1);
         addStone(recipes, "Stone Pressure Plates", 2, 1);
 
+        // Wool family: wool is gathered directly (sheared from sheep), so there's no raw material
+        recipes.put("Carpets", new Material("Carpets", "Wool", 2, 3));
+
         return recipes;
     }
 

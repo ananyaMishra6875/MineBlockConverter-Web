@@ -239,6 +239,8 @@ select:focus, input:focus { outline: 3px solid var(--focus-ring); border-color: 
 /* Stone: smooth grey with a faint seam; cobblestone: lumpy grey blotches */
 .stone-icon { background: linear-gradient(180deg, #9a9a9a 0 48%, #868686 48% 52%, #9a9a9a 52% 100%); box-shadow: inset -8px -8px 0 rgba(40,40,40,.14); }
 .cobblestone-icon { background: radial-gradient(circle at 25% 30%, #a3a3a3 0 18%, transparent 19%), radial-gradient(circle at 72% 28%, #8c8c8c 0 16%, transparent 17%), radial-gradient(circle at 40% 72%, #959595 0 20%, transparent 21%), radial-gradient(circle at 80% 75%, #a8a8a8 0 14%, transparent 15%), #6f6f6f; box-shadow: inset -8px -8px 0 rgba(30,30,30,.16); }
+/* Wool: soft off-white with a woven look */
+.wool-icon { background: repeating-linear-gradient(45deg, #ecebe6 0 3px, #dddbd3 3px 5px), #ecebe6; box-shadow: inset -8px -8px 0 rgba(90,85,70,.12); }
 .total-pills { display: flex; flex-wrap: wrap; gap: 12px; }
 .stack-text { color: var(--muted); font-family: "Segoe UI", Arial, sans-serif; font-size: 12px; font-weight: 600; }
 .list-num .stack-text { display: block; margin-top: 3px; }

@@ -6,6 +6,9 @@ package com.ananya.mineblockconverter.model;
  * Each recipe turns {@code recipeInput} of an ingredient (e.g. Planks) into
  * {@code recipeOutput} items. The ingredient itself comes from a raw material
  * (e.g. Logs), and one raw material makes {@code ingredientsPerRaw} ingredients.
+ *
+ * Some ingredients are gathered directly (e.g. Wool, sheared from sheep). Those recipes
+ * have no raw material: {@code rawMaterial} is null and the raw count is always 0.
  */
 public class Material {
     protected String name;
@@ -23,6 +26,11 @@ public class Material {
         this.recipeOutput = recipeOutput;
         this.rawMaterial = rawMaterial;
         this.ingredientsPerRaw = ingredientsPerRaw;
+    }
+
+    // A recipe whose ingredient is gathered directly, with no raw material behind it
+    public Material(String name, String ingredient, int recipeInput, int recipeOutput) {
+        this(name, ingredient, recipeInput, recipeOutput, null, 0);
     }
 
     // Getters
@@ -57,8 +65,15 @@ public class Material {
         return recipesNeeded * recipeInput;
     }
 
-    // How many raw materials (e.g. logs) are needed to craft amt items
+    public boolean hasRawMaterial() {
+        return rawMaterial != null;
+    }
+
+    // How many raw materials (e.g. logs) are needed to craft amt items; 0 if there is none
     public int calculateRawMaterials(int amt) {
+        if (!hasRawMaterial()) {
+            return 0;
+        }
         return (int) Math.ceil(calculateIngredients(amt) / (double) ingredientsPerRaw);
     }
 }

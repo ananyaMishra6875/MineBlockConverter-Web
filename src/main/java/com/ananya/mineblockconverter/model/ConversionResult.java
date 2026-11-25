@@ -5,6 +5,7 @@ public class ConversionResult {
     private int quantity;
     // Kept as "planks"/"logs" so the page keeps working; for non-wood recipes they hold
     // the ingredient and raw material counts, named by ingredient/rawMaterial below.
+    // When rawMaterial is null (e.g. wool, gathered directly), logs is 0 and means nothing.
     private int planks;
     private int logs;
     private int planksPerRecipe;

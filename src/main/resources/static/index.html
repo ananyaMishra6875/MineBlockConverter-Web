@@ -94,7 +94,7 @@
                                 <div><p id="ingredientLabel">Planks</p><span id="planksStacks">Total required</span></div>
                                 <strong id="planks">0</strong>
                             </article>
-                            <article class="resource-card logs-card">
+                            <article class="resource-card logs-card" id="rawMaterialCard">
                                 <div class="resource-icon log-icon" id="rawMaterialIcon" aria-hidden="true"></div>
                                 <div><p id="rawMaterialLabel">Logs</p><span id="logsStacks">Total required</span></div>
                                 <strong id="logs">0</strong>
@@ -137,7 +137,7 @@
                         <span>Combined total</span>
                         <div class="total-pills" id="totalPills"></div>
                     </div>
-                    <p class="list-note">Raw materials are worked out from each combined ingredient (1 log = 4 planks, 1 cobblestone smelts into 1 stone), so leftovers from one item count toward the next.</p>
+                    <p class="list-note">Raw materials are worked out from each combined ingredient (1 log = 4 planks, 1 cobblestone smelts into 1 stone), so leftovers from one item count toward the next. Wool is gathered directly, so it has no raw material.</p>
                     <p class="list-error" id="listError" role="alert" hidden></p>
                 </div>
             </section>

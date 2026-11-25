@@ -36,6 +36,16 @@ class ConverterServiceTests {
     }
 
     @Test
+    void calculatesCarpetsWithNoRawMaterial() {
+        ConversionResult result = service.convert("Carpets", 30);
+
+        assertEquals("Wool", result.getIngredient());
+        assertEquals(20, result.getPlanks());  // 20 wool: 2 wool make 3 carpets
+        assertNull(result.getRawMaterial());
+        assertEquals(0, result.getLogs());
+    }
+
+    @Test
     void woodRecipesSayWhatTheyAreMadeFrom() {
         Material stairs = RecipeRepository.loadRecipes().get("Stairs");
 
