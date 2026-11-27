@@ -220,10 +220,10 @@ select:focus, input:focus { outline: 3px solid var(--focus-ring); border-color: 
 .list-empty strong { color: var(--ink); }
 .list-content { padding-top: 8px; animation: reveal .28s ease-out; }
 
-.list-row { display: grid; grid-template-columns: minmax(120px, 1.4fr) 140px 1fr 1fr 44px; align-items: center; gap: 12px; padding: 10px 4px; border-bottom: 1px solid var(--line); }
+.list-row { display: grid; grid-template-columns: minmax(120px, 1.4fr) 140px 2fr 44px; align-items: center; gap: 12px; padding: 10px 4px; border-bottom: 1px solid var(--line); }
 .list-head { padding: 12px 4px 8px; color: var(--muted); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; }
 .list-item-name { font-weight: 750; }
-.list-num { font-family: "Minecraft", sans-serif; font-size: 17px; color: var(--forest); }
+.list-needs { color: var(--forest); font-size: 14px; font-weight: 750; line-height: 1.4; }
 .list-qty { width: 100%; height: 40px; padding: 0 10px; border: 1px solid var(--input-border); border-radius: 6px; background: var(--surface); color: var(--ink); font-weight: 750; }
 .list-qty.invalid { border-color: var(--error); outline: 3px solid var(--error-ring); }
 .remove-button { width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 50%; background: transparent; color: var(--muted); font-size: 18px; line-height: 1; transition: .16s ease; }
@@ -241,9 +241,10 @@ select:focus, input:focus { outline: 3px solid var(--focus-ring); border-color: 
 .cobblestone-icon { background: radial-gradient(circle at 25% 30%, #a3a3a3 0 18%, transparent 19%), radial-gradient(circle at 72% 28%, #8c8c8c 0 16%, transparent 17%), radial-gradient(circle at 40% 72%, #959595 0 20%, transparent 21%), radial-gradient(circle at 80% 75%, #a8a8a8 0 14%, transparent 15%), #6f6f6f; box-shadow: inset -8px -8px 0 rgba(30,30,30,.16); }
 /* Wool: soft off-white with a woven look */
 .wool-icon { background: repeating-linear-gradient(45deg, #ecebe6 0 3px, #dddbd3 3px 5px), #ecebe6; box-shadow: inset -8px -8px 0 rgba(90,85,70,.12); }
+/* Sticks: a thin diagonal brown stick on a light background */
+.stick-icon { background: linear-gradient(135deg, transparent 0 42%, #8a6339 42% 58%, transparent 58% 100%), var(--surface-soft); box-shadow: inset -8px -8px 0 rgba(91,59,28,.08); }
 .total-pills { display: flex; flex-wrap: wrap; gap: 12px; }
 .stack-text { color: var(--muted); font-family: "Segoe UI", Arial, sans-serif; font-size: 12px; font-weight: 600; }
-.list-num .stack-text { display: block; margin-top: 3px; }
 .list-note { margin: 10px 2px 0; color: var(--muted); font-size: 12px; }
 .list-error { margin: 12px 0 0; padding: 12px 14px; border: 1px solid var(--error-border); border-radius: 5px; background: var(--error-bg); color: var(--error); font-size: 13px; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -269,9 +270,7 @@ footer { width: min(1120px, calc(100% - 48px)); margin-top: auto; padding: 18px 
     .list-panel { padding: 20px; }
     .list-row { grid-template-columns: 1fr 88px 36px; gap: 8px 10px; }
     .list-head { display: none; }
-    .list-num { grid-row: 2; font-size: 14px; }
-    .list-num[data-field="planks"] .count-value::after { content: " planks"; font-family: "Segoe UI", Arial, sans-serif; font-size: 12px; color: var(--muted); }
-    .list-num[data-field="logs"] .count-value::after { content: " logs"; font-family: "Segoe UI", Arial, sans-serif; font-size: 12px; color: var(--muted); }
+    .list-needs { grid-row: 2; grid-column: 1 / -1; font-size: 13px; }
     .list-totals > span { width: 100%; }
     footer { width: calc(100% - 24px); }
 }

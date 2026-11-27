@@ -1,48 +1,63 @@
 package com.ananya.mineblockconverter.model;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 
 public class RecipeRepository {
-    public static LinkedHashMap<String, Material> loadRecipes() {
-        LinkedHashMap<String, Material> recipes = new LinkedHashMap<>();
 
-        // Wood family: made from planks, and 1 log = 4 planks
-        addWood(recipes, "Stairs", 6, 4);
-        addWood(recipes, "Slabs", 3, 6);
-        addWood(recipes, "Trapdoors", 6, 2);
-        addWood(recipes, "Doors", 6, 3);
-        addWood(recipes, "Gates", 2, 1);
-        addWood(recipes, "Fence Posts", 4, 3);
-        addWood(recipes, "Signs", 6, 3);
-        addWood(recipes, "Buttons", 1, 1);
-        addWood(recipes, "Pressure Plates", 2, 1);
-        addWood(recipes, "Boats", 5, 1);
-        addWood(recipes, "Chests", 8, 1);
+    /** The items you can pick in the app, in the order the dropdown shows them. */
+    public static LinkedHashMap<String, Recipe> loadRecipes() {
+        LinkedHashMap<String, Recipe> recipes = new LinkedHashMap<>();
 
-        // Stone family: made from stone, and 1 cobblestone smelts into 1 stone
-        addStone(recipes, "Stone Stairs", 6, 4);
-        addStone(recipes, "Stone Slabs", 3, 6);
-        addStone(recipes, "Stone Bricks", 4, 4);
-        addStone(recipes, "Stone Buttons", 1, 1);
-        addStone(recipes, "Stone Pressure Plates", 2, 1);
+        // Wood family
+        add(recipes, "Stairs", 4, of("Planks", 6));
+        add(recipes, "Slabs", 6, of("Planks", 3));
+        add(recipes, "Trapdoors", 2, of("Planks", 6));
+        add(recipes, "Doors", 3, of("Planks", 6));
+        add(recipes, "Gates", 1, of("Planks", 2));
+        add(recipes, "Fence Posts", 3, of("Planks", 4));
+        add(recipes, "Signs", 3, of("Planks", 6));
+        add(recipes, "Buttons", 1, of("Planks", 1));
+        add(recipes, "Pressure Plates", 1, of("Planks", 2));
+        add(recipes, "Boats", 1, of("Planks", 5));
+        add(recipes, "Chests", 1, of("Planks", 8));
 
-        // Wool family: wool is gathered directly (sheared from sheep), so there's no raw material
-        recipes.put("Carpets", new Material("Carpets", "Wool", 2, 3));
+        // Stone family
+        add(recipes, "Stone Stairs", 4, of("Stone", 6));
+        add(recipes, "Stone Slabs", 6, of("Stone", 3));
+        add(recipes, "Stone Bricks", 4, of("Stone", 4));
+        add(recipes, "Stone Buttons", 1, of("Stone", 1));
+        add(recipes, "Stone Pressure Plates", 1, of("Stone", 2));
+
+        // Wool family
+        add(recipes, "Carpets", 3, of("Wool", 2));
+        add(recipes, "Beds", 1, of("Wool", 3), of("Planks", 3));
+        add(recipes, "Banners", 1, of("Wool", 6), of("Sticks", 1));
 
         return recipes;
     }
 
-    private static void addStone(LinkedHashMap<String, Material> recipes,
-                                 String name, int stoneIn, int itemsOut) {
-        recipes.put(name, new Material(name, "Stone", stoneIn, itemsOut, "Cobblestone", 1));
+    /**
+     * Ingredients that are crafted from something else. They aren't in the dropdown,
+     * but the converter works back through them. Logs, Cobblestone and Wool have no
+     * recipe because they are gathered directly.
+     */
+    public static LinkedHashMap<String, Recipe> loadIngredientRecipes() {
+        LinkedHashMap<String, Recipe> recipes = new LinkedHashMap<>();
+
+        add(recipes, "Planks", 4, of("Logs", 1));
+        add(recipes, "Sticks", 4, of("Planks", 2));
+        add(recipes, "Stone", 1, of("Cobblestone", 1));  // smelted
+
+        return recipes;
     }
 
-    private static void addWood(LinkedHashMap<String, Material> recipes,
-                                String name, int planksIn, int itemsOut) {
-        recipes.put(name, new Material(name, "Planks", planksIn, itemsOut, "Logs", 4));
+    private static void add(LinkedHashMap<String, Recipe> recipes, String name, int output,
+                            Ingredient... inputs) {
+        recipes.put(name, new Recipe(name, output, List.of(inputs)));
     }
 
-    public static LinkedHashMap<String, Material> getRecipes() {
-        return loadRecipes();
+    private static Ingredient of(String item, int amount) {
+        return new Ingredient(item, amount);
     }
 }

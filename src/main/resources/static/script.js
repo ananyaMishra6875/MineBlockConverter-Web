@@ -6,13 +6,14 @@ const emptyState = document.getElementById("emptyState");
 const resultsContent = document.getElementById("resultsContent");
 const errorBanner = document.getElementById("errorBanner");
 
-// Planks, logs, stone and cobblestone all stack to 64 in Minecraft.
+// Every material the app works out (planks, logs, sticks, stone, cobblestone, wool) stacks to 64.
 const STACK_SIZE = 64;
 
 // CSS class for a material's little block icon (see styles.css).
 const ICON_CLASSES = {
     Planks: "plank-icon",
     Logs: "log-icon",
+    Sticks: "stick-icon",
     Stone: "stone-icon",
     Cobblestone: "cobblestone-icon",
     Wool: "wool-icon"
@@ -20,6 +21,22 @@ const ICON_CLASSES = {
 
 function iconClass(materialName) {
     return ICON_CLASSES[materialName] ?? "plank-icon";
+}
+
+// "Planks", 3 -> "planks"; "Logs", 1 -> "log". Wool, Stone and Cobblestone don't change.
+function unitName(item, count) {
+    const name = item.toLowerCase();
+    return count === 1 && name.endsWith("s") ? name.slice(0, -1) : name;
+}
+
+// "Planks", 3 -> "3 planks"; "Logs", 1 -> "1 log"
+function amountText(item, count) {
+    return `${count.toLocaleString()} ${unitName(item, count)}`;
+}
+
+// [{item: "Wool", count: 6}, {item: "Planks", count: 6}] -> "6 wool · 6 planks"
+function needsText(needs) {
+    return needs.map(need => amountText(need.item, need.count)).join(" · ");
 }
 
 // 300 -> "4 stacks + 44", 128 -> "2 stacks", 40 -> "" (under a stack, nothing extra to show)
@@ -96,24 +113,14 @@ async function convert(event) {
 
         if (!response.ok) throw new Error(result.message || "Conversion failed.");
 
-        document.getElementById("planks").textContent = result.planks.toLocaleString();
-        document.getElementById("logs").textContent = result.logs.toLocaleString();
-        document.getElementById("planksStacks").textContent = formatStacks(result.planks) || "Total required";
-        document.getElementById("logsStacks").textContent = formatStacks(result.logs) || "Total required";
-        document.getElementById("ingredientLabel").textContent = result.ingredient;
-        document.getElementById("ingredientIcon").className = `resource-icon ${iconClass(result.ingredient)}`;
-        // Wool and other gathered ingredients have no raw material, so the second card hides.
-        const hasRaw = result.rawMaterial != null;
-        document.getElementById("rawMaterialCard").hidden = !hasRaw;
-        if (hasRaw) {
-            document.getElementById("rawMaterialLabel").textContent = result.rawMaterial;
-            document.getElementById("rawMaterialIcon").className = `resource-icon ${iconClass(result.rawMaterial)}`;
-        }
+        // One card per material, the recipe's own ingredients first.
+        document.getElementById("resourceList").replaceChildren(...result.needs.map(resourceCard));
         document.getElementById("summaryMaterial").textContent = result.material;
         document.getElementById("summaryQuantity").textContent = `× ${result.quantity.toLocaleString()}`;
+        // e.g. "3 wool + 3 planks → 1 bed"
+        const recipeInputs = result.recipeInputs.map(input => amountText(input.item, input.amount)).join(" + ");
         document.getElementById("recipeDetails").textContent =
-            `${result.planksPerRecipe} ${result.ingredient.toLowerCase()} → ` +
-            `${result.itemsPerRecipe} ${result.material.toLowerCase()}`;
+            `${recipeInputs} → ${amountText(result.material, result.recipeOutput)}`;
         document.getElementById("recipeChip").textContent = "Calculated";
 
         emptyState.hidden = true;
@@ -126,6 +133,29 @@ async function convert(event) {
         convertButton.classList.remove("loading");
         convertButton.querySelector("span").textContent = "Calculate resources";
     }
+}
+
+// A result card, e.g. [plank icon] Planks / "4 stacks + 44" / 300
+function resourceCard(need) {
+    const card = document.createElement("article");
+    card.className = "resource-card";
+
+    const icon = document.createElement("div");
+    icon.className = `resource-icon ${iconClass(need.item)}`;
+    icon.setAttribute("aria-hidden", "true");
+
+    const label = document.createElement("div");
+    const name = document.createElement("p");
+    name.textContent = need.item;
+    const stacks = document.createElement("span");
+    stacks.textContent = formatStacks(need.count) || "Total required";
+    label.append(name, stacks);
+
+    const count = document.createElement("strong");
+    count.textContent = need.count.toLocaleString();
+
+    card.append(icon, label, count);
+    return card;
 }
 
 converterForm.addEventListener("submit", convert);
@@ -160,14 +190,14 @@ const listError = document.getElementById("listError");
 const clearListButton = document.getElementById("clearListButton");
 const copyListButton = document.getElementById("copyListButton");
 
-// Each entry: { material, quantity, planks, logs, ingredient, rawMaterial, ingredientsPerRaw }.
-// Everything after quantity is filled in by the server. For stone items "planks"/"logs"
-// hold the stone/cobblestone counts; ingredient/rawMaterial say what they really are.
+// Each entry: { material, quantity, needs }. needs is filled in by the server,
+// e.g. [{item: "Wool", count: 6}, {item: "Planks", count: 6}, {item: "Logs", count: 2}].
 let shoppingList = [];
+// The whole list worked out together by the server, so leftovers carry over between items.
+let listTotals = [];
 
 function newEntry(material, quantity) {
-    return {material, quantity, planks: null, logs: null,
-        ingredient: null, rawMaterial: null, ingredientsPerRaw: null};
+    return {material, quantity, needs: null};
 }
 let recalcTimer = null;
 let recalcRequestId = 0;
@@ -176,7 +206,7 @@ let listUpToDate = true;
 let copyResetTimer = null;
 
 // The list is kept in the browser so it survives a refresh.
-// Only material + quantity are stored; planks/logs are recalculated by the server on load.
+// Only material + quantity are stored; what they need is recalculated by the server on load.
 const LIST_STORAGE_KEY = "mineblock.shoppingList";
 
 function saveList() {
@@ -276,37 +306,9 @@ function updateListQuantity(material, rawValue, input) {
     recalcTimer = setTimeout(recalculateList, 250);
 }
 
-function formatCount(value) {
-    return value == null ? "…" : value.toLocaleString();
-}
-
-// Fills a list cell with the number and what it counts (e.g. "12 stone"),
-// plus a small stack line underneath when it's 64 or more.
-function fillCountCell(cell, value, unit) {
-    const stacks = formatStacks(value);
-    const number = document.createElement("span");
-    number.className = "count-value";
-    number.textContent = value == null || !unit ? "…" : `${formatCount(value)} ${unit.toLowerCase()}`;
-    cell.replaceChildren(number);
-    if (stacks) {
-        const small = document.createElement("small");
-        small.className = "stack-text";
-        small.textContent = stacks;
-        cell.appendChild(small);
-    }
-}
-
-// The raw-material cell: a count, or "—" once we know the item has no raw material (e.g. wool).
-function fillRawCell(cell, entry) {
-    if (entry.ingredient != null && entry.rawMaterial == null) {
-        const none = document.createElement("span");
-        none.className = "count-value";
-        none.textContent = "—";
-        none.title = `${entry.ingredient} is gathered directly`;
-        cell.replaceChildren(none);
-        return;
-    }
-    fillCountCell(cell, entry.logs, entry.rawMaterial);
+// The Needs cell, e.g. "6 wool · 6 planks · 2 logs", or "…" until the server answers.
+function fillNeedsCell(cell, entry) {
+    cell.textContent = entry.needs == null ? "…" : needsText(entry.needs);
 }
 
 function renderList() {
@@ -341,17 +343,10 @@ function renderList() {
         qtyInput.addEventListener("input", () => updateListQuantity(entry.material, qtyInput.value, qtyInput));
         qtyCell.appendChild(qtyInput);
 
-        const planks = document.createElement("span");
-        planks.className = "list-num";
-        planks.setAttribute("role", "cell");
-        planks.dataset.field = "planks";
-        fillCountCell(planks, entry.planks, entry.ingredient);
-
-        const logs = document.createElement("span");
-        logs.className = "list-num";
-        logs.setAttribute("role", "cell");
-        logs.dataset.field = "logs";
-        fillRawCell(logs, entry);
+        const needs = document.createElement("span");
+        needs.className = "list-needs";
+        needs.setAttribute("role", "cell");
+        fillNeedsCell(needs, entry);
 
         const removeCell = document.createElement("span");
         removeCell.setAttribute("role", "cell");
@@ -364,7 +359,7 @@ function renderList() {
         removeButton.addEventListener("click", () => removeFromList(entry.material));
         removeCell.appendChild(removeButton);
 
-        row.append(name, qtyCell, planks, logs, removeCell);
+        row.append(name, qtyCell, needs, removeCell);
         return row;
     }));
 }
@@ -373,40 +368,11 @@ function renderList() {
 function renderListNumbers() {
     shoppingList.forEach(entry => {
         const row = listRows.querySelector(`[data-material="${CSS.escape(entry.material)}"]`);
-        if (row) {
-            fillCountCell(row.querySelector('[data-field="planks"]'), entry.planks, entry.ingredient);
-            fillRawCell(row.querySelector('[data-field="logs"]'), entry);
-        }
+        if (row) fillNeedsCell(row.querySelector(".list-needs"), entry);
     });
 
-    const pills = [];
-    listTotals().forEach(group => {
-        pills.push(totalPill(group.ingredient, group.ingredientTotal));
-        if (group.rawMaterial != null) pills.push(totalPill(group.rawMaterial, group.rawTotal));
-    });
-    document.getElementById("totalPills").replaceChildren(...pills);
-}
-
-// Adds up the list per ingredient, in list order, e.g.
-// [{ingredient: "Planks", ingredientTotal: 36, rawMaterial: "Logs", rawTotal: 9}, ...].
-// Raw materials come from the combined ingredient total, so leftovers carry over between items.
-// Items the server hasn't answered for yet are left out.
-// Ingredients with no raw material (e.g. wool) get rawMaterial and rawTotal of null.
-function listTotals() {
-    const groups = new Map();
-    shoppingList.forEach(entry => {
-        if (entry.ingredient == null || entry.planks == null) return;
-        let group = groups.get(entry.ingredient);
-        if (!group) {
-            group = {ingredient: entry.ingredient, ingredientTotal: 0,
-                rawMaterial: entry.rawMaterial, perRaw: entry.ingredientsPerRaw};
-            groups.set(entry.ingredient, group);
-        }
-        group.ingredientTotal += entry.planks;
-    });
-    return [...groups.values()].map(group =>
-        ({...group, rawTotal: group.rawMaterial == null ? null
-            : Math.ceil(group.ingredientTotal / group.perRaw)}));
+    document.getElementById("totalPills").replaceChildren(
+        ...listTotals.map(total => totalPill(total.item, total.count)));
 }
 
 // One total, e.g. [icon] "300 planks (4 stacks + 44)"
@@ -421,7 +387,7 @@ function totalPill(materialName, count) {
     const text = document.createElement("span");
     const number = document.createElement("strong");
     number.textContent = count.toLocaleString();
-    text.append(number, ` ${materialName.toLowerCase()}`);
+    text.append(number, ` ${unitName(materialName, count)}`);
     const stacks = formatStacks(count);
     if (stacks) {
         const small = document.createElement("small");
@@ -445,6 +411,7 @@ async function recalculateList() {
     listUpToDate = false;
 
     if (shoppingList.length === 0) {
+        listTotals = [];
         listUpToDate = true;
         renderListNumbers();
         return;
@@ -460,20 +427,15 @@ async function recalculateList() {
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify(payload)
         });
-        const results = await response.json();
-        if (!response.ok) throw new Error(results.message || "Could not calculate your list.");
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || "Could not calculate your list.");
         if (requestId !== recalcRequestId) return;
 
-        results.forEach(result => {
-            const entry = shoppingList.find(item => item.material === result.material);
-            if (entry) {
-                entry.planks = result.planks;
-                entry.logs = result.logs;
-                entry.ingredient = result.ingredient;
-                entry.rawMaterial = result.rawMaterial;
-                entry.ingredientsPerRaw = result.ingredientsPerRaw;
-            }
+        result.items.forEach(item => {
+            const entry = shoppingList.find(listed => listed.material === item.material);
+            if (entry) entry.needs = item.needs;
         });
+        listTotals = result.totals;
         listUpToDate = true;
         renderListNumbers();
     } catch (error) {
@@ -485,21 +447,13 @@ function hasInvalidQuantity() {
     return listRows.querySelector(".list-qty.invalid") !== null;
 }
 
-// Plain text for pasting into chat or notes, e.g. "Stairs ×24 → 36 planks (9 logs)",
-// then one "Total:" line per ingredient. Items with no raw material skip the brackets,
-// e.g. "Carpets ×30 → 20 wool".
+// Plain text for pasting into chat or notes, e.g.
+//   Beds ×2 → 6 wool · 6 planks · 2 logs
+//   Total: 6 wool · 6 planks · 2 logs
 function listAsText() {
-    const lines = shoppingList.map(entry => {
-        const made = `${entry.material} ×${entry.quantity.toLocaleString()} → ` +
-            `${entry.planks.toLocaleString()} ${entry.ingredient.toLowerCase()}`;
-        return entry.rawMaterial == null ? made
-            : `${made} (${entry.logs.toLocaleString()} ${entry.rawMaterial.toLowerCase()})`;
-    });
-    listTotals().forEach(group => {
-        const total = `Total: ${group.ingredientTotal.toLocaleString()} ${group.ingredient.toLowerCase()}`;
-        lines.push(group.rawMaterial == null ? total
-            : `${total}, ${group.rawTotal.toLocaleString()} ${group.rawMaterial.toLowerCase()}`);
-    });
+    const lines = shoppingList.map(entry =>
+        `${entry.material} ×${entry.quantity.toLocaleString()} → ${needsText(entry.needs)}`);
+    lines.push(`Total: ${needsText(listTotals)}`);
     return lines.join("\n");
 }
 

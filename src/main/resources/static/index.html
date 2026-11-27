@@ -88,18 +88,8 @@
 
                     <div class="results-content" id="resultsContent" hidden>
                         <div class="summary-line"><span id="summaryMaterial">Stairs</span><strong id="summaryQuantity">× 1</strong></div>
-                        <div class="resource-list">
-                            <article class="resource-card planks-card">
-                                <div class="resource-icon plank-icon" id="ingredientIcon" aria-hidden="true"></div>
-                                <div><p id="ingredientLabel">Planks</p><span id="planksStacks">Total required</span></div>
-                                <strong id="planks">0</strong>
-                            </article>
-                            <article class="resource-card logs-card" id="rawMaterialCard">
-                                <div class="resource-icon log-icon" id="rawMaterialIcon" aria-hidden="true"></div>
-                                <div><p id="rawMaterialLabel">Logs</p><span id="logsStacks">Total required</span></div>
-                                <strong id="logs">0</strong>
-                            </article>
-                        </div>
+                        <!-- Filled in by script.js: one card per material needed -->
+                        <div class="resource-list" id="resourceList"></div>
                         <div class="recipe-details"><span>Crafting recipe</span><strong id="recipeDetails">—</strong></div>
                     </div>
 
@@ -126,8 +116,7 @@
                         <div class="list-row list-head" role="row">
                             <span role="columnheader">Item</span>
                             <span role="columnheader">Quantity</span>
-                            <span role="columnheader">Ingredient</span>
-                            <span role="columnheader">Raw material</span>
+                            <span role="columnheader">Needs</span>
                             <span role="columnheader"><span class="visually-hidden">Remove</span></span>
                         </div>
                         <div id="listRows" role="rowgroup"></div>
@@ -137,7 +126,7 @@
                         <span>Combined total</span>
                         <div class="total-pills" id="totalPills"></div>
                     </div>
-                    <p class="list-note">Raw materials are worked out from each combined ingredient (1 log = 4 planks, 1 cobblestone smelts into 1 stone), so leftovers from one item count toward the next. Wool is gathered directly, so it has no raw material.</p>
+                    <p class="list-note">The total is worked out for the whole list at once (1 log = 4 planks, 2 planks = 4 sticks, 1 cobblestone smelts into 1 stone), so leftovers from one item count toward the next. That's why it can be less than adding up the rows. Wool is gathered directly.</p>
                     <p class="list-error" id="listError" role="alert" hidden></p>
                 </div>
             </section>

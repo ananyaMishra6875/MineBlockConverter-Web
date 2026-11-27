@@ -1,67 +1,15 @@
 package com.ananya.mineblockconverter.model;
 
-public class ConversionResult {
-    private String material;
-    private int quantity;
-    // Kept as "planks"/"logs" so the page keeps working; for non-wood recipes they hold
-    // the ingredient and raw material counts, named by ingredient/rawMaterial below.
-    // When rawMaterial is null (e.g. wool, gathered directly), logs is 0 and means nothing.
-    private int planks;
-    private int logs;
-    private int planksPerRecipe;
-    private int itemsPerRecipe;
-    private String ingredient;
-    private String rawMaterial;
-    private int ingredientsPerRaw;
+import java.util.List;
 
-    public ConversionResult(String material, int quantity, int planks, int logs,
-                            int planksPerRecipe, int itemsPerRecipe,
-                            String ingredient, String rawMaterial, int ingredientsPerRaw) {
-        this.material = material;
-        this.quantity = quantity;
-        this.planks = planks;
-        this.logs = logs;
-        this.planksPerRecipe = planksPerRecipe;
-        this.itemsPerRecipe = itemsPerRecipe;
-        this.ingredient = ingredient;
-        this.rawMaterial = rawMaterial;
-        this.ingredientsPerRaw = ingredientsPerRaw;
-    }
-
-    // Getters
-    public String getMaterial() {
-        return material;
-    }
-
-    public int getQuantity() {
-        return quantity;
-    }
-
-    public int getPlanks() {
-        return planks;
-    }
-
-    public int getLogs() {
-        return logs;
-    }
-
-    public int getPlanksPerRecipe() {
-        return planksPerRecipe;
-    }
-
-    public int getItemsPerRecipe() {
-        return itemsPerRecipe;
-    }
-
-    public String getIngredient() {
-        return ingredient;
-    }
-
-    public String getRawMaterial() {
-        return rawMaterial;
-    }
-
-    public int getIngredientsPerRaw() {
-        return ingredientsPerRaw;
-    }
+/**
+ * What crafting {@code quantity} of one item takes.
+ *
+ * @param recipeOutput how many items one craft makes
+ * @param recipeInputs what one craft takes, e.g. 3 Wool + 3 Planks
+ * @param needs        everything to gather or craft along the way, the recipe's own
+ *                     ingredients first, e.g. 6 Wool, 6 Planks, 2 Logs
+ */
+public record ConversionResult(String material, int quantity, int recipeOutput,
+                               List<Ingredient> recipeInputs, List<ResourceAmount> needs) {
 }
