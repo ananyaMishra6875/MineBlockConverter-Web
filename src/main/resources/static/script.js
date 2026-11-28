@@ -117,10 +117,11 @@ async function convert(event) {
         document.getElementById("resourceList").replaceChildren(...result.needs.map(resourceCard));
         document.getElementById("summaryMaterial").textContent = result.material;
         document.getElementById("summaryQuantity").textContent = `× ${result.quantity.toLocaleString()}`;
-        // e.g. "3 wool + 3 planks → 1 bed"
+        // e.g. "3 wool + 3 planks → 1 bed", or "Gathered directly" for logs, cobblestone and wool
         const recipeInputs = result.recipeInputs.map(input => amountText(input.item, input.amount)).join(" + ");
-        document.getElementById("recipeDetails").textContent =
-            `${recipeInputs} → ${amountText(result.material, result.recipeOutput)}`;
+        document.getElementById("recipeDetails").textContent = result.recipeInputs.length === 0
+            ? "Gathered directly"
+            : `${recipeInputs} → ${amountText(result.material, result.recipeOutput)}`;
         document.getElementById("recipeChip").textContent = "Calculated";
 
         emptyState.hidden = true;

@@ -4,6 +4,7 @@ import com.ananya.mineblockconverter.model.BatchResult;
 import com.ananya.mineblockconverter.model.ConversionResult;
 import com.ananya.mineblockconverter.model.Ingredient;
 import com.ananya.mineblockconverter.model.Recipe;
+import com.ananya.mineblockconverter.model.RecipeBook;
 import com.ananya.mineblockconverter.model.RecipeRepository;
 import com.ananya.mineblockconverter.model.ResourceAmount;
 
@@ -24,20 +25,18 @@ import org.springframework.stereotype.Service;
 public class ConverterService {
     private static final int MAX_QUANTITY = 1_000_000;
 
-    // The items people can pick
-    private final LinkedHashMap<String, Recipe> craftable = RecipeRepository.loadRecipes();
-    // Every recipe, including ingredients like Planks that are crafted on the way
-    private final Map<String, Recipe> allRecipes = new HashMap<>();
-
-    public ConverterService() {
-        allRecipes.putAll(RecipeRepository.loadIngredientRecipes());
-        allRecipes.putAll(craftable);
-    }
+    private final RecipeBook book = RecipeRepository.load();
 
     public ConversionResult convert(String materialName, int quantity) {
-        Recipe recipe = validate(materialName, quantity);
-        return new ConversionResult(recipe.name(), quantity, recipe.output(), recipe.inputs(),
-                workBackwards(Map.of(recipe.name(), quantity)));
+        validate(materialName, quantity);
+        List<ResourceAmount> needs = workBackwards(Map.of(materialName, quantity));
+
+        Recipe recipe = book.recipe(materialName);
+        if (recipe == null) {
+            // Gathered directly, e.g. Logs: no recipe to show
+            return new ConversionResult(materialName, quantity, 0, List.of(), needs);
+        }
+        return new ConversionResult(materialName, quantity, recipe.output(), recipe.inputs(), needs);
     }
 
     public BatchResult convertBatch(Map<String, Integer> quantities) {
@@ -58,21 +57,19 @@ public class ConverterService {
     }
 
     public List<String> getMaterialNames() {
-        return new ArrayList<>(craftable.keySet());
+        return book.selectableNames();
     }
 
-    private Recipe validate(String materialName, int quantity) {
+    private void validate(String materialName, int quantity) {
         if (materialName == null || materialName.isBlank()) {
             throw new IllegalArgumentException("Material is required.");
         }
         if (quantity < 1 || quantity > MAX_QUANTITY) {
             throw new IllegalArgumentException("Quantity must be between 1 and 1,000,000.");
         }
-        Recipe recipe = craftable.get(materialName);
-        if (recipe == null) {
+        if (!book.isSelectable(materialName)) {
             throw new IllegalArgumentException("Unknown material: " + materialName);
         }
-        return recipe;
     }
 
     /**
@@ -85,7 +82,8 @@ public class ConverterService {
      *
      * The result lists the wanted items' own ingredients first, then what those are
      * made from, e.g. Wool, Sticks, Planks, Logs for Banners. Materials that several
-     * items share (like Planks) appear once, where they're first needed.
+     * items share (like Planks) appear once, where they're first needed. A picked building
+     * block is included with its own amount added in, e.g. Planks ×20 gives 20 Planks, 5 Logs.
      */
     private List<ResourceAmount> workBackwards(Map<String, Integer> wanted) {
         // 1. Find every material involved, nearest first.
@@ -94,7 +92,7 @@ public class ConverterService {
         while (!toVisit.isEmpty()) {
             String item = toVisit.poll();
             if (!involved.add(item)) continue;
-            Recipe recipe = allRecipes.get(item);
+            Recipe recipe = book.recipe(item);
             if (recipe != null) {
                 recipe.inputs().forEach(input -> toVisit.add(input.item()));
             }
@@ -103,7 +101,7 @@ public class ConverterService {
         // 2. Count how many involved recipes use each material.
         Map<String, Integer> usedBy = new HashMap<>();
         for (String item : involved) {
-            Recipe recipe = allRecipes.get(item);
+            Recipe recipe = book.recipe(item);
             if (recipe != null) {
                 recipe.inputs().forEach(input -> usedBy.merge(input.item(), 1, Integer::sum));
             }
@@ -122,11 +120,13 @@ public class ConverterService {
             String item = ready.poll();
             done++;
             long amount = needed.getOrDefault(item, 0L);
-            if (!wanted.containsKey(item)) {
+            // Materials are listed even when picked themselves: Planks ×10 + Stairs ×4 is 16 planks.
+            // Items like Stairs aren't: you place those, nothing else is made from them.
+            if (book.isMaterial(item)) {
                 result.add(new ResourceAmount(item, amount));
             }
 
-            Recipe recipe = allRecipes.get(item);
+            Recipe recipe = book.recipe(item);
             if (recipe == null) continue;  // gathered directly
 
             long crafts = recipe.timesToCraft(amount);

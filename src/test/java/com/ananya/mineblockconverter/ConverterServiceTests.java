@@ -123,9 +123,50 @@ class ConverterServiceTests {
     }
 
     @Test
-    void ingredientsCantBePickedDirectly() {
-        assertThrows(IllegalArgumentException.class, () -> service.convert("Planks", 4));
+    void buildingBlocksCanBePickedButSticksCant() {
+        assertTrue(service.getMaterialNames().containsAll(
+                List.of("Logs", "Planks", "Stone", "Cobblestone", "Wool")));
         assertFalse(service.getMaterialNames().contains("Sticks"));
+        assertThrows(IllegalArgumentException.class, () -> service.convert("Sticks", 4));
+    }
+
+    @Test
+    void dropdownStartsEachFamilyWithItsBlocks() {
+        List<String> names = service.getMaterialNames();
+
+        assertEquals(List.of("Logs", "Planks", "Stairs"), names.subList(0, 3));
+        assertEquals(names.indexOf("Stone Stairs") - 1, names.indexOf("Stone"));
+    }
+
+    @Test
+    void craftedBlockListsItselfAndWhatItsMadeFrom() {
+        ConversionResult result = service.convert("Planks", 20);
+
+        assertEquals(needs("Planks", 20, "Logs", 5), result.needs());
+        assertEquals(List.of(new Ingredient("Logs", 1)), result.recipeInputs());
+        assertEquals(4, result.recipeOutput());
+    }
+
+    @Test
+    void gatheredBlockHasNoRecipe() {
+        ConversionResult result = service.convert("Logs", 64);
+
+        assertEquals(needs("Logs", 64), result.needs());
+        assertEquals(List.of(), result.recipeInputs());
+        assertEquals(0, result.recipeOutput());
+    }
+
+    @Test
+    void pickedBlocksAddToWhatItemsNeed() {
+        Map<String, Integer> list = new LinkedHashMap<>();
+        list.put("Planks", 10);  // to place
+        list.put("Stairs", 4);   // 6 more planks to craft
+        list.put("Logs", 8);     // to place, on top of the logs for the planks
+
+        BatchResult result = service.convertBatch(list);
+
+        // 16 planks is 4 logs, plus the 8 picked = 12 logs
+        assertEquals(needs("Planks", 16, "Logs", 12), result.totals());
     }
 
     @Test
