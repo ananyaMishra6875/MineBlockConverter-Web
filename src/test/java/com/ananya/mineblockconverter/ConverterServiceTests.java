@@ -85,6 +85,17 @@ class ConverterServiceTests {
     }
 
     @Test
+    void fencesGatesAndSignsNeedSticksToo() {
+        // The planks count includes the planks turned into sticks (2 planks make 4 sticks).
+        // Fence Posts ×3: 4 planks + 2 sticks (1 stick craft = 2 more planks) = 6 planks
+        assertEquals(needs("Planks", 6, "Sticks", 2, "Logs", 2), service.convert("Fence Posts", 3).needs());
+        // Gates ×1: 2 planks + 4 sticks (1 stick craft = 2 more planks) = 4 planks
+        assertEquals(needs("Planks", 4, "Sticks", 4, "Logs", 1), service.convert("Gates", 1).needs());
+        // Signs ×3: 6 planks + 1 stick (1 stick craft = 2 more planks) = 8 planks
+        assertEquals(needs("Planks", 8, "Sticks", 1, "Logs", 2), service.convert("Signs", 3).needs());
+    }
+
+    @Test
     void listTotalsShareLeftoversBetweenItems() {
         Map<String, Integer> list = new LinkedHashMap<>();
         list.put("Stairs", 4);   // 6 planks: 2 logs on its own

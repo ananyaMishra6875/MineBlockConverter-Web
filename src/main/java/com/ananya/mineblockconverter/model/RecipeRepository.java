@@ -14,9 +14,9 @@ public class RecipeRepository {
         add(recipes, "Slabs", 6, of("Planks", 3));
         add(recipes, "Trapdoors", 2, of("Planks", 6));
         add(recipes, "Doors", 3, of("Planks", 6));
-        add(recipes, "Gates", 1, of("Planks", 2));
-        add(recipes, "Fence Posts", 3, of("Planks", 4));
-        add(recipes, "Signs", 3, of("Planks", 6));
+        add(recipes, "Gates", 1, of("Planks", 2), of("Sticks", 4));
+        add(recipes, "Fence Posts", 3, of("Planks", 4), of("Sticks", 2));
+        add(recipes, "Signs", 3, of("Planks", 6), of("Sticks", 1));
         add(recipes, "Buttons", 1, of("Planks", 1));
         add(recipes, "Pressure Plates", 1, of("Planks", 2));
         add(recipes, "Boats", 1, of("Planks", 5));
