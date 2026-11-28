@@ -29,6 +29,12 @@ public class RecipeRepository {
         add(recipes, "Stone Buttons", 1, of("Stone", 1));
         add(recipes, "Stone Pressure Plates", 1, of("Stone", 2));
 
+        // Cobblestone family: cobblestone is gathered directly
+        add(recipes, "Cobblestone Stairs", 4, of("Cobblestone", 6));
+        add(recipes, "Cobblestone Slabs", 6, of("Cobblestone", 3));
+        add(recipes, "Cobblestone Walls", 6, of("Cobblestone", 6));
+        add(recipes, "Furnaces", 1, of("Cobblestone", 8));
+
         // Wool family
         add(recipes, "Carpets", 3, of("Wool", 2));
         add(recipes, "Beds", 1, of("Wool", 3), of("Planks", 3));

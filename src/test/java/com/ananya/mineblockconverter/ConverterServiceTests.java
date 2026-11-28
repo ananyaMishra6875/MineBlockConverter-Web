@@ -44,6 +44,24 @@ class ConverterServiceTests {
     }
 
     @Test
+    void cobblestoneItemsNeedOnlyCobblestone() {
+        assertEquals(needs("Cobblestone", 24), service.convert("Furnaces", 3).needs());
+        // 7 walls is two crafts of 6
+        assertEquals(needs("Cobblestone", 12), service.convert("Cobblestone Walls", 7).needs());
+    }
+
+    @Test
+    void stoneAndCobblestoneItemsShareCobblestone() {
+        Map<String, Integer> list = new LinkedHashMap<>();
+        list.put("Stone Stairs", 8);  // 12 stone, smelted from 12 cobblestone
+        list.put("Furnaces", 1);      // 8 cobblestone
+
+        BatchResult result = service.convertBatch(list);
+
+        assertEquals(needs("Stone", 12, "Cobblestone", 20), result.totals());
+    }
+
+    @Test
     void calculatesCarpetsWithNothingBehindWool() {
         ConversionResult result = service.convert("Carpets", 30);
 
